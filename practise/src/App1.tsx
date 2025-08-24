@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import React, { useEffect, useState } from "react";
 
 interface User {
@@ -8,12 +8,26 @@ interface User {
 const App1 = () => {
   const [users, setUsers] = useState<User[]>([]); // we specifiy what type of data we store to not get compilation error.
   const [error, setError] = useState("");
+  //   woring with pormisess
+  const fetchUser = async () => {
+    const res = await axios.get<User[]>(
+      "https://jsonplaceholder.typicode.com/usersx"
+    );
+    setUsers(res.data);
+  };
   useEffect(() => {
-    axios
-      .get<User[]>("https://jsonplaceholder.typicode.com/usersx")
-      .then((res) => setUsers(res.data))
-      .catch((err) => setError(err.message)); //we don't know what data we save so compilation error.
+    try {
+      fetchUser();
+    } catch (err) {
+      setError((err as AxiosError).message);
+    }
   }, []);
+  //   useEffect(() => {
+  //     axios
+  //       .get<User[]>("https://jsonplaceholder.typicode.com/usersx")
+  //       .then((res) => setUsers(res.data))
+  //       .catch((err) => setError(err.message)); //we don't know what data we save so compilation error.
+  //   }, []);
   return (
     <div>
       {error && <p className="text-danger">{error}</p>}
