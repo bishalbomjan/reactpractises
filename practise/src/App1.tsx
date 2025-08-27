@@ -9,6 +9,10 @@ const App1 = () => {
   const [users, setUsers] = useState<User[]>([]); // we specifiy what type of data we store to not get compilation error.
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false); // We need to sepcify loading indicator.
+  const [newUser, setNewUser] = useState({
+    id: 0,
+    name: "",
+  });
   useEffect(() => {
     const controller = new AbortController();
     setIsLoading(true);
@@ -39,10 +43,35 @@ const App1 = () => {
         setUsers(originalUser);
       });
   };
+  const addUser = () => {
+    const originalUser = users; // store copy of original user
+    setUsers([newUser, ...users]);
+    axios
+      .post("https://jsonplaceholder.typicode.com/users/", newUser)
+      .then(({ data: savedUser }) => setUsers([savedUser, ...users]))
+      .catch((err) => {
+        setError(err.message);
+        setUsers(originalUser);
+      });
+  };
   return (
     <div>
       {isLoading && <div className="spinner-border"></div>}
       {error && <p className="text-danger">{error}</p>}
+      <div className="form-group">
+        <label htmlFor="name" className="form-label">
+          Name
+        </label>
+        <input
+          onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+          type="text"
+          id="name"
+          className="form-input"
+        />
+      </div>
+      <button onClick={() => addUser()} className="btn btn-primary">
+        Add
+      </button>
       <ul className="list-group">
         {users.map((user) => (
           <li
