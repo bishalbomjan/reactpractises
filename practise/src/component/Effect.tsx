@@ -7,16 +7,7 @@ const Effect = () => {
     console.log("fetching products");
     setProducts(["clothing", "Household"]);
   }, []);
-  const [category, setCategory] = useState("");
-  return (
-    <div>
-      <select name="" id="" onChange={(e) => setCategory(e.target.value)}>
-        <option value=""></option>
-        <option value="clothing">Clothing</option>
-        <option value="household">HouseHold</option>
-      </select>
-    </div>
-  );
+  return <div></div>;
 };
 
 export default Effect;

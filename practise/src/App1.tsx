@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, CanceledError } from "axios";
 import React, { useEffect, useState } from "react";
 
 interface User {
@@ -8,32 +8,55 @@ interface User {
 const App1 = () => {
   const [users, setUsers] = useState<User[]>([]); // we specifiy what type of data we store to not get compilation error.
   const [error, setError] = useState("");
-  //   woring with pormisess
-  const fetchUser = async () => {
-    const res = await axios.get<User[]>(
-      "https://jsonplaceholder.typicode.com/usersx"
-    );
-    setUsers(res.data);
-  };
+  const [isLoading, setIsLoading] = useState(false); // We need to sepcify loading indicator.
   useEffect(() => {
-    try {
-      fetchUser();
-    } catch (err) {
-      setError((err as AxiosError).message);
-    }
+    const controller = new AbortController();
+    setIsLoading(true);
+    axios
+      .get<User[]>("https://jsonplaceholder.typicode.com/users", {
+        signal: controller.signal,
+      })
+      .then((res) => {
+        setUsers(res.data);
+        setIsLoading(false);
+        //  finally block is placed, we don't need this.
+      })
+      .catch((err) => {
+        if (err instanceof CanceledError) return;
+        setError(err.message);
+        setIsLoading(false);
+      });
+
+    return () => controller.abort();
   }, []);
-  //   useEffect(() => {
-  //     axios
-  //       .get<User[]>("https://jsonplaceholder.typicode.com/usersx")
-  //       .then((res) => setUsers(res.data))
-  //       .catch((err) => setError(err.message)); //we don't know what data we save so compilation error.
-  //   }, []);
+  const deleteUser = (user: User) => {
+    const originalUser = users; // store copy of original user
+    setUsers(users.filter((u) => u.id !== user.id));
+    axios
+      .delete("https://jsonplaceholder.typicode.com/users/" + user.id)
+      .catch((err) => {
+        setError(err.message);
+        setUsers(originalUser);
+      });
+  };
   return (
     <div>
+      {isLoading && <div className="spinner-border"></div>}
       {error && <p className="text-danger">{error}</p>}
-      <ul>
+      <ul className="list-group">
         {users.map((user) => (
-          <li key={user.id}>{user.name}</li>
+          <li
+            key={user.id}
+            className="list-item-group p-1 d-flex justify-content-between"
+          >
+            {user.name}
+            <button
+              onClick={() => deleteUser(user)}
+              className="btn btn-outline-danger"
+            >
+              Delete
+            </button>
+          </li>
         ))}
       </ul>
     </div>
