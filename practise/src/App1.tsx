@@ -1,32 +1,14 @@
-import { CanceledError } from "./services/api-client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import userService, { User } from "./services/user-service";
+import useUsers from "./hooks/useUsers";
 
 const App1 = () => {
-  const [users, setUsers] = useState<User[]>([]); // we specifiy what type of data we store to not get compilation error.
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // We need to sepcify loading indicator.
   const [newUser, setNewUser] = useState({
     id: 0,
     name: "",
   });
-  useEffect(() => {
-    setIsLoading(true);
-    const { request, cancel } = userService.getAll<User>();
-    request
-      .then((res) => {
-        setUsers(res.data);
-        setIsLoading(false);
-        //  finally block is placed, we don't need this.
-      })
-      .catch((err) => {
-        if (err instanceof CanceledError) return;
-        setError(err.message);
-        setIsLoading(false);
-      });
 
-    return () => cancel();
-  }, []);
+  const { users, error, isLoading, setError, setUsers } = useUsers();
   const deleteUser = (user: User) => {
     const originalUser = users; // store copy of original user
     setUsers(users.filter((u) => u.id !== user.id));
